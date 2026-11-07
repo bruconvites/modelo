@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Isabelle e Emanuelle • 1 ano</title>
+<meta name="theme-color" content="#f6c9dd">
+<style>
+  :root{
+    --gold:#c99a3c;
+    --gold-light:#f3d98b;
+    --pink:#f6c9dd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#f2bfd6;font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif}
+
+  .screen{
+    position:fixed;inset:0;
+    display:none;
+    align-items:center;justify-content:center;
+    opacity:0;transition:opacity .9s ease;
+    background:linear-gradient(180deg,#f7d3e3,#efb5cf);
+    overflow:hidden;
+  }
+  .screen.active{display:flex}
+  .screen.visible{opacity:1}
+
+  /* fundo desfocado que preenche as laterais em telas largas */
+  .bg-blur{
+    position:absolute;inset:-6%;
+    background-size:cover;background-position:center;
+    filter:blur(22px) brightness(1.02) saturate(1.1);
+    transform:scale(1.1);
+  }
+
+  /* palco com a proporção exata da imagem (941 x 1672) */
+  .stage{
+    position:relative;
+    aspect-ratio:941/1672;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
+    width:auto;
+  }
+  .stage img{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+
+  /* ---------- tela 1: capa ---------- */
+  #capa{cursor:pointer}
+
+  /* ---------- tela 2: vídeo ---------- */
+  #telaVideo{background:#000}
+  #telaVideo video{
+    position:relative;
+    width:100%;height:100%;
+    object-fit:contain;
+    background:#000;
+  }
+  #pular{
+    position:absolute;
+    left:50%;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 26px);
+    transform:translateX(-50%);
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(243,217,139,.55);
+    color:rgba(255,240,200,.92);
+    font-family:inherit;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    padding:9px 20px 9px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    text-shadow:0 0 8px rgba(201,154,60,.7);
+    box-shadow:0 0 14px rgba(243,217,139,.25);
+    opacity:.8;
+    transition:opacity .3s, background .3s;
+    white-space:nowrap;
+    z-index:5;
+  }
+  #pular:hover{opacity:1;background:rgba(255,255,255,.16)}
+
+  /* ---------- tela 3: interativo ---------- */
+  #interativo{flex-direction:column}
+  #interativo .area{
+    position:relative;
+    flex:1 1 auto;
+    width:100%;
+    min-height:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #interativo .stage{height:100%}
+  .hotspot{
+    position:absolute;
+    top:75%;height:18.5%;
+    border-radius:34% / 40%;
+    display:block;
+    cursor:pointer;
+    -webkit-tap-highlight-color:rgba(255,255,255,.25);
+  }
+  .hotspot.esq{left:5.2%;width:43.5%}
+  .hotspot.dir{left:50.8%;width:43.5%}
+  .hotspot:active{background:rgba(255,255,255,.18)}
+
+  /* faixa inferior, fora da imagem: nada fica sobreposto */
+  .rodape{
+    flex:0 0 auto;
+    width:100%;
+    height:calc(46px + env(safe-area-inset-bottom,0px));
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:3;
+  }
+  #voltar{
+    background:transparent;
+    border:1px solid rgba(160,110,40,.45);
+    color:#9b6b1f;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    padding:6px 16px 6px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    opacity:.85;
+    transition:opacity .3s, background .3s;
+    white-space:nowrap;
+  }
+  #voltar:hover{opacity:1;background:rgba(255,255,255,.35)}
+
+  /* canvas dos efeitos por cima de tudo */
+  #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+
+<!-- 1. CAPA -->
+<div id="capa" class="screen active visible">
+  <div class="bg-blur" style="background-image:url('primeira.jpg')"></div>
+  <div class="stage"><img src="primeira.jpg" alt="Clique no envelope para abrir o convite" draggable="false"></div>
+</div>
+
+<!-- 2. VÍDEO -->
+<div id="telaVideo" class="screen">
+  <video id="video" src="video.mp4" playsinline webkit-playsinline preload="auto"></video>
+  <button id="pular" type="button">Pular introdução</button>
+</div>
+
+<!-- 3. CONVITE INTERATIVO -->
+<div id="interativo" class="screen">
+  <div class="bg-blur" style="background-image:url('interativo.jpg')"></div>
+  <div class="area">
+    <div class="stage">
+      <img src="interativo.jpg" alt="Convite de 1 ano de Isabelle e Emanuelle" draggable="false">
+      <a class="hotspot esq" href="https://maps.app.goo.gl/H8Ujsp2Vr2fee3a99" target="_blank" rel="noopener" aria-label="Ver localização"></a>
+      <a class="hotspot dir" href="https://wa.me/5541995653390?text=Teste%20convite%20modelo" target="_blank" rel="noopener" aria-label="Confirme sua presença"></a>
+    </div>
+  </div>
+  <div class="rodape">
+    <button id="voltar" type="button">Voltar ao convite</button>
+  </div>
+</div>
+
+<canvas id="fx"></canvas>
+
+<script>
+(function(){
+  var capa = document.getElementById('capa');
+  var telaVideo = document.getElementById('telaVideo');
+  var interativo = document.getElementById('interativo');
+  var video = document.getElementById('video');
+  var pular = document.getElementById('pular');
+  var voltar = document.getElementById('voltar');
+
+  /* ---------- troca de telas ---------- */
+  function show(el){
+    [capa, telaVideo, interativo].forEach(function(s){
+      if(s !== el){ s.classList.remove('visible'); s.classList.remove('active'); }
+    });
+    el.classList.add('active');
+    void el.offsetWidth;
+    el.classList.add('visible');
+  }
+
+  function tocarVideo(){
+    try{ video.currentTime = 0; }catch(e){}
+    video.muted = false;
+    var p = video.play();
+    if(p && p.catch){
+      p.catch(function(){
+        video.muted = true;
+        var p2 = video.play();
+        if(p2 && p2.catch){ p2.catch(irParaConvite); }
+      });
+    }
+  }
+
+  function irParaConvite(){
+    video.pause();
+    show(interativo);
+  }
+
+  /* clique na capa: efeito + vídeo automático */
+  var iniciado = false;
+  capa.addEventListener('pointerdown', function(e){
+    if(iniciado) return;
+    burst(e.clientX, e.clientY, 1);
+  });
+  // o "click" é um gesto que os navegadores aceitam para tocar vídeo COM som
+  capa.addEventListener('click', function(){
+    if(iniciado) return;
+    iniciado = true;
+    tocarVideo();
+    setTimeout(function(){ show(telaVideo); }, 900); // deixa as borboletas aparecerem
+    setTimeout(function(){ iniciado = false; }, 1200);
+  });
+
+  // se o navegador tiver forçado o vídeo sem som, qualquer toque nele liga o áudio
+  telaVideo.addEventListener('click', function(){
+    if(video.muted){ video.muted = false; video.volume = 1; }
+  });
+
+  /* efeito em qualquer toque no vídeo e no convite interativo
+     (a capa já tem o seu próprio efeito acima) */
+  document.addEventListener('pointerdown', function(e){
+    if(capa.classList.contains('active')) return;
+    burst(e.clientX, e.clientY, .6);
+  });
+
+  pular.addEventListener('click', irParaConvite);
+  video.addEventListener('ended', irParaConvite);
+  video.addEventListener('error', function(){ if(telaVideo.classList.contains('active')) irParaConvite(); });
+
+  voltar.addEventListener('click', function(e){
+    show(telaVideo);
+    tocarVideo();
+  });
+
+  /* ---------- efeito de borboletas e brilhos ---------- */
+  var cv = document.getElementById('fx');
+  var ctx = cv.getContext('2d');
+  var W, H, dpr;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize); resize();
+
+  var parts = [];
+  var rodando = false;
+
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+
+  function burst(x, y, intensidade){
+    var nb = Math.round(16*intensidade);
+    var ns = Math.round(55*intensidade);
+    for(var i=0;i<nb;i++){
+      var ang = rnd(0, Math.PI*2);
+      var sp = rnd(.8, 3.2);
+      parts.push({
+        t:'b', x:x, y:y,
+        vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - rnd(.4,1.4),
+        size:rnd(.55,1.05),
+        rot:rnd(-.5,.5), vr:rnd(-.02,.02),
+        flap:rnd(0,6), fs:rnd(.18,.3),
+        life:0, max:rnd(110,190),
+        wob:rnd(0,6), wobS:rnd(.03,.07)
+      });
+    }
+    for(var j=0;j<ns;j++){
+      var a2 = rnd(0, Math.PI*2);
+      var s2 = rnd(.3, 3.8);
+      parts.push({
+        t:'s', x:x+rnd(-8,8), y:y+rnd(-8,8),
+        vx:Math.cos(a2)*s2, vy:Math.sin(a2)*s2 - rnd(0,.8),
+        size:rnd(1.2,4.2),
+        tw:rnd(0,6), tws:rnd(.1,.35),
+        star:Math.random()<.5,
+        life:0, max:rnd(50,130)
+      });
+    }
+    if(!rodando){ rodando = true; requestAnimationFrame(loop); }
+  }
+
+  function wingPath(){
+    var p = new Path2D();
+    // asa superior
+    p.moveTo(0,0);
+    p.bezierCurveTo(3,-13, 20,-20, 24,-9);
+    p.bezierCurveTo(26,-2, 14,3, 0,0);
+    // asa inferior
+    p.moveTo(0,1);
+    p.bezierCurveTo(12,2, 22,8, 16,15);
+    p.bezierCurveTo(11,19, 3,11, 0,1);
+    return p;
+  }
+  var WING = wingPath();
+
+  function drawButterfly(p, alpha){
+    var f = Math.abs(Math.cos(p.flap));
+    f = .3 + .7*f;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot + Math.sin(p.wob)*.25);
+    var sc = p.size;
+    ctx.scale(sc, sc);
+
+    ctx.shadowColor = 'rgba(255,215,120,.9)';
+    ctx.shadowBlur = 8;
+
+    for(var side=-1; side<=1; side+=2){
+      ctx.save();
+      ctx.scale(side*f, 1);
+      var g = ctx.createLinearGradient(0,-15,22,12);
+      g.addColorStop(0,'rgba(255,240,247,.95)');
+      g.addColorStop(.55,'rgba(250,176,208,.9)');
+      g.addColorStop(1,'rgba(240,140,185,.9)');
+      ctx.fillStyle = g;
+      ctx.fill(WING);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = '#d9a93f';
+      ctx.lineJoin = 'round';
+      ctx.stroke(WING);
+      ctx.restore();
+    }
+    ctx.shadowBlur = 0;
+    // corpo dourado
+    ctx.strokeStyle = '#d9a93f';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(0,10); ctx.stroke();
+    // antenas
+    ctx.lineWidth = .9;
+    ctx.beginPath();
+    ctx.moveTo(0,-5); ctx.quadraticCurveTo(-3,-11,-6,-12);
+    ctx.moveTo(0,-5); ctx.quadraticCurveTo(3,-11,6,-12);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSparkle(p, alpha){
+    var tw = .55 + .45*Math.sin(p.tw);
+    var a = alpha*tw;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.translate(p.x, p.y);
+    var r = p.size;
+    var g = ctx.createRadialGradient(0,0,0,0,0,r*3);
+    g.addColorStop(0,'rgba(255,248,210,1)');
+    g.addColorStop(.35,'rgba(246,205,100,.8)');
+    g.addColorStop(1,'rgba(230,180,70,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0,0,r*3,0,Math.PI*2); ctx.fill();
+    if(p.star){
+      ctx.fillStyle = 'rgba(255,245,200,1)';
+      ctx.beginPath();
+      var L = r*3.2, w = r*.45;
+      ctx.moveTo(0,-L); ctx.quadraticCurveTo(w,-w,L,0);
+      ctx.quadraticCurveTo(w,w,0,L);
+      ctx.quadraticCurveTo(-w,w,-L,0);
+      ctx.quadraticCurveTo(-w,-w,0,-L);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=parts.length-1;i>=0;i--){
+      var p = parts[i];
+      p.life++;
+      var k = p.life/p.max;
+      if(k>=1){ parts.splice(i,1); continue; }
+      var alpha = k<.15 ? k/.15 : (k>.65 ? (1-k)/.35 : 1);
+
+      if(p.t==='b'){
+        p.vx *= .985; p.vy *= .985;
+        p.vy -= .012;                // sobe suavemente
+        p.vx += Math.sin(p.wob)*.03; // balanço delicado
+        p.x += p.vx; p.y += p.vy;
+        p.rot += p.vr;
+        p.flap += p.fs;
+        p.wob += p.wobS;
+        drawButterfly(p, alpha);
+      }else{
+        p.vx *= .97; p.vy *= .97;
+        p.vy += .012;
+        p.x += p.vx; p.y += p.vy;
+        p.tw += p.tws;
+        drawSparkle(p, alpha);
+      }
+    }
+    if(parts.length){ requestAnimationFrame(loop); }
+    else{ ctx.clearRect(0,0,W,H); rodando = false; }
+  }
+})();
+</script>
+</body>
+</html>
